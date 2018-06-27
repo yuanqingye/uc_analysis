@@ -315,20 +315,20 @@ grid.arrange(p,tb_1_2,nrow = 2)
 # ldatestart.str = format(ldatestart,'%Y%m%d')
 # ldateend.str = format(ldateend,'%Y%m%d')
 
-new_user_by_model_date_city_sql = 
-paste0("select count(b.u_mid) numbers,firstdt,d_model,l_city from
-(select f.u_mid,substr(firstonlinetime,1,10) firstdt,a.d_model,a.l_city from dl.umid_firstonlinetime f left join
+new_user_by_model_date_sql = 
+paste0("select count(b.u_mid) numbers,firstdt,d_model from
+(select f.u_mid,substr(firstonlinetime,1,10) firstdt,a.d_model from dl.umid_firstonlinetime f left join
   (select * from
-  (select u_mid,d_model,l_city,ROW_NUMBER() OVER (PARTITION BY u_mid,d_model,l_city ORDER BY dt) 
+  (select u_mid,d_model,ROW_NUMBER() OVER (PARTITION BY u_mid,d_model ORDER BY dt) 
        as level from ods.ods_app_pageview_info where dt>=",ldatestart.str,") t where t.level = 1) a
   using(u_mid) where substr(firstonlinetime,1,10) >= '",as.character(ldatestart),"' 
-  and f.dt = '",dateend.str,"') b group by firstdt,d_model,l_city")
-new_user_by_model_date_city = read_data_impala_general(new_user_by_model_date_city_sql)
-new_user_by_model_date_city = data.table(new_user_by_model_date_city)
-lnew_user_by_model_date_city = new_user_by_model_date_city[firstdt < as.character(datestart),]
-new_user_by_model_date_city = new_user_by_model_date_city[firstdt >= as.character(datestart),]
-new_user_by_model_date = new_user_by_model_date_city[d_model!="null" & str_trim(d_model)!="",.(numbers = sum(numbers)),by = c("d_model","firstdt")]
-new_user_by_model = new_user_by_model_date_city[d_model!="null" & str_trim(d_model)!="",.(numbers = sum(numbers)),by = "d_model"][order(numbers,decreasing = T)]
+  and f.dt = '",dateend.str,"') b group by firstdt,d_model")
+new_user_by_model_date = read_data_impala_general(new_user_by_model_date_sql)
+new_user_by_model_date = data.table(new_user_by_model_date)
+lnew_user_by_model_date = new_user_by_model_date[firstdt < as.character(datestart),]
+new_user_by_model_date = new_user_by_model_date[firstdt >= as.character(datestart),]
+new_user_by_model_date = new_user_by_model_date[d_model!="null" & str_trim(d_model)!="",]
+new_user_by_model = new_user_by_model_date[d_model!="null" & str_trim(d_model)!="",.(numbers = sum(numbers)),by = "d_model"][order(numbers,decreasing = T)]
 model_list = new_user_by_model[1:100,]$d_model
 new_user_by_model_date_top100 = new_user_by_model_date[d_model %in% model_list,]
 new_user_by_model_date_top100$model = factor(new_user_by_model_date_top100$d_model,levels = model_list)
@@ -337,7 +337,7 @@ new_user_by_model_date_top100_ordered = new_user_by_model_date_top100[order(firs
 new_user_by_model_date_ordered_reshape = dcast(new_user_by_model_date_top100_ordered, model ~ firstdt, value.var = "numbers")
 new_user_by_model_date_ordered_reshape$sum =rowSums(new_user_by_model_date_ordered_reshape[,-1],na.rm = T)
 melt_df_model_top20 = melt(new_user_by_model_date_ordered_reshape[1:20,-ncol(new_user_by_model_date_ordered_reshape)], id.vars = "model", measure.vars = 2:(ncol(new_user_by_model_date_ordered_reshape)-1), variable.name = "date", value.name = "value")
-lmodel_rank = lnew_user_by_model_date_city[d_model!="null" & str_trim(d_model)!="",.(lsum = sum(numbers)),by = c("d_model")]
+lmodel_rank = lnew_user_by_model_date[d_model!="null" & str_trim(d_model)!="",.(lsum = sum(numbers)),by = c("d_model")]
 lmodel_rank$lrank = frank(lmodel_rank,-lsum,ties.method = "min")
 new_user_by_model_date_ordered_reshape$rank = seq(new_user_by_model_date_ordered_reshape$sum)
 new_user_by_model_date_ordered_reshape = merge(new_user_by_model_date_ordered_reshape,lmodel_rank,by.x = "model",by.y= "d_model",all.x = TRUE)
@@ -362,9 +362,21 @@ treemap(melt_df_model_top20,index = c("date","model"),vSize = "value")
 
 ##新用户不同城市分布
 ```{r city,echo = FALSE}
-new_user_by_model_date_city$l_city = str_replace(new_user_by_model_date_city$l_city,"市","")
-new_user_by_city_dt = new_user_by_model_date_city[!l_city %in% c("null","局域网","未知"),.(numbers = sum(numbers)),by = c("l_city","firstdt")]
-new_user_by_city = new_user_by_model_date_city[!l_city %in% c("null","局域网","未知"),.(numbers = sum(numbers)),by = "l_city"][order(numbers,decreasing = T),]
+new_user_by_city_date_sql = 
+paste0("select count(b.u_mid) numbers,firstdt,l_city from
+(select f.u_mid,substr(firstonlinetime,1,10) firstdt,a.l_city from dl.umid_firstonlinetime f left join
+  (select * from
+  (select u_mid,l_city,ROW_NUMBER() OVER (PARTITION BY u_mid,l_city ORDER BY dt) 
+       as level from ods.ods_app_pageview_info where dt>=",ldatestart.str,") t where t.level = 1) a
+  using(u_mid) where substr(firstonlinetime,1,10) >= '",as.character(ldatestart),"' 
+  and f.dt = '",dateend.str,"') b group by firstdt,l_city")
+new_user_by_city_dt = read_data_impala_general(new_user_by_city_date_sql)
+new_user_by_city_dt$l_city = str_replace(new_user_by_city_dt$l_city,"市","")
+new_user_by_city_dt = data.table(new_user_by_city_dt)
+new_user_by_city_dt = new_user_by_city_dt[!l_city %in% c("null","局域网","未知"),]
+lnew_user_by_city_dt = new_user_by_city_dt[firstdt < as.character(datestart),]
+new_user_by_city_dt = new_user_by_city_dt[firstdt >= as.character(datestart),]
+new_user_by_city = new_user_by_city_dt[,.(numbers = sum(numbers)),by = "l_city"][order(numbers,decreasing = T),]
 city_list = new_user_by_city[1:101,]$l_city
 new_user_by_city_date_top100 = new_user_by_city_dt[l_city %in% city_list,]
 new_user_by_city_date_top100$city = factor(new_user_by_city_date_top100$l_city,levels = city_list)
@@ -373,8 +385,8 @@ new_user_by_city_date_ordered_reshape = dcast(new_user_by_city_date_top100_order
 new_user_by_city_date_ordered_reshape$sum = rowSums(new_user_by_city_date_ordered_reshape[,c(-1,-14)],na.rm = T)
 #Since first 2 city has problems
 melt_df_city_top20 = melt(new_user_by_city_date_ordered_reshape[3:22,-ncol(new_user_by_city_date_ordered_reshape)], id.vars = "city", measure.vars = 2:(ncol(new_user_by_city_date_ordered_reshape)-1), variable.name = "date", value.name = "value")
-lnew_user_by_model_date_city$l_city = str_replace(lnew_user_by_model_date_city$l_city,"市","")
-lcity_rank = lnew_user_by_model_date_city[!l_city %in% c("null","局域网","未知"),.(lsum = sum(numbers)),by = c("l_city")]
+lnew_user_by_city_dt$l_city = str_replace(lnew_user_by_city_dt$l_city,"市","")
+lcity_rank = lnew_user_by_city_dt[,.(lsum = sum(numbers)),by = c("l_city")]
 lcity_rank$lrank = frank(lcity_rank,-lsum,ties.method = "min")
 new_user_by_city_date_ordered_reshape$rank = seq(new_user_by_city_date_ordered_reshape$sum)
 new_user_by_city_date_ordered_reshape = merge(new_user_by_city_date_ordered_reshape,lcity_rank,by.x = "city",by.y= "l_city",all.x = TRUE)
