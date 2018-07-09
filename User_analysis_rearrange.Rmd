@@ -80,7 +80,7 @@ mtext(side = 2,text = at,at = at,col = 'purple',line = 1)
 
 ```
 
-次日留存率,新老用户都有一定的波动,老用户留存率每一天都高于新用户,节日期间留存率高,6月18日留存率有个波谷
+次日留存率,老用户有一定的波动,新用户普遍较低波动不大,老用户留存率每一天都高于新用户,节日期间留存率高,7月2日留存率最低,6月28日留存率最高
 
 #用户活跃
 ##近两周的日活跃度(UV)
@@ -132,7 +132,7 @@ bplot = barplot(matrix,main="Every day uv",names.arg=dates,xlab="month",ylab="uv
 
 `r if(length(abnormalhighdt)==0){"并没有哪天"} else{abnormalhighdt}` 用户UV明显高于平均值    
 `r if(length(abnormallowdt)==0){"并没有哪天"} else{abnormallowdt}` 用户UV明显低于平均值    
-整体uv值呈现平时低节日高的趋势
+
 <!-- `r ifelse(length(abnormallowdt)==0,"并没有哪天",abnormallowdt)` 用户UV明显低于平均值 -->
 
 ##近两周人均PV
@@ -224,7 +224,7 @@ full()
 ```
 
 画中画分析，*大图全图*和*小图中高亮处*均表示近两周pv趋势，而小图整体表示近一个月的pv情况    
-近两周整体pv因端午节出现高峰,**在6月16日到6月18日达到高峰，而在其余时间相对较低**
+**近两周整体pv偏低**
 
 ## 用户活跃时长
 ```{r time_span,echo=FALSE,warning=FALSE,results="hide",message=FALSE}
@@ -276,7 +276,8 @@ from
 
 对于用户访问时长作的热力图    
 在本报告所覆盖的两周     
-6月16日这天访问时间明显更长,新用户访问时长普遍低于于老用户,6月18日之前比之后访问时间更长        
+在每周的周末,新用户访问时间更长,在每周的工作日,老用户访问时间更长    
+新用户访问时长波动大于老用户,当新用户达到访问时长波峰时,高于老用户,位于波谷时,低于老用户    
 
 
 ```{r depth_person_date,echo=FALSE,warning = FALSE,eval=FALSE}
@@ -352,7 +353,9 @@ rownames(new_user_by_model_date_ordered_reshape) = 1:nrow(new_user_by_model_date
 DT::datatable(new_user_by_model_date_ordered_reshape, options = list(pageLength = 20))
 ```
 
-机型中iphone手机排名前列，前十三名均被iphone系列手机占据,安卓机中MI 6,OPPO R9M,Redmi Note 4X,OPPO R9s,MHA-AL00,OPPO Redmi Note 3排名前二十,值得注意的是新手机iPhone 8 Plus排入第13,iPhone 8排第20,     本阶段节日流量出现暴增,排名前三的iphone5系列并非当下常见机型
+机型中iphone手机排名前列，前十三名均被iphone系列手机占据,安卓机中MI 6,MI5X,OPPO R11,OPPO R9s,Redmi Note 4X,Redmi Note 3,Mi Note 3排名前二十,值得注意的是新手机iPhone X排名第8,iphone7排名第13,iPhone 8 Plus排入第19,iPhone SE排第17    
+本阶段,排名前三的iphone5系列并非当下常见机型,华为机型本周并没有进入前20
+
 
 ```{r model_treemap}
 treemap(melt_df_model_top20,index = c("date","model"),vSize = "value")
@@ -382,9 +385,11 @@ new_user_by_city_date_top100 = new_user_by_city_dt[l_city %in% city_list,]
 new_user_by_city_date_top100$city = factor(new_user_by_city_date_top100$l_city,levels = city_list)
 new_user_by_city_date_top100_ordered = new_user_by_city_date_top100[order(firstdt,city)]
 new_user_by_city_date_ordered_reshape = dcast(new_user_by_city_date_top100_ordered, city ~ firstdt, value.var = "numbers")
+#this will remove the -99999 and -999999
+new_user_by_city_date_ordered_reshape = new_user_by_city_date_ordered_reshape[!str_detect(new_user_by_city_date_ordered_reshape$city,"9"),]
 new_user_by_city_date_ordered_reshape$sum = rowSums(new_user_by_city_date_ordered_reshape[,c(-1,-14)],na.rm = T)
 #Since first 2 city has problems
-melt_df_city_top20 = melt(new_user_by_city_date_ordered_reshape[3:22,-ncol(new_user_by_city_date_ordered_reshape)], id.vars = "city", measure.vars = 2:(ncol(new_user_by_city_date_ordered_reshape)-1), variable.name = "date", value.name = "value")
+melt_df_city_top20 = melt(new_user_by_city_date_ordered_reshape[1:20,-ncol(new_user_by_city_date_ordered_reshape)], id.vars = "city", measure.vars = 2:(ncol(new_user_by_city_date_ordered_reshape)-1), variable.name = "date", value.name = "value")
 lnew_user_by_city_dt$l_city = str_replace(lnew_user_by_city_dt$l_city,"市","")
 lcity_rank = lnew_user_by_city_dt[,.(lsum = sum(numbers)),by = c("l_city")]
 lcity_rank$lrank = frank(lcity_rank,-lsum,ties.method = "min")
@@ -398,17 +403,16 @@ new_user_by_city_date_ordered_reshape$lsum = NULL
 new_user_by_city_date_ordered_reshape$lrank = NULL
 new_user_by_city_date_ordered_reshape = cbind(sym,new_user_by_city_date_ordered_reshape)
 #temp process
-new_user_by_city_date_ordered_reshape = new_user_by_city_date_ordered_reshape[c(-1,-2),]
 rownames(new_user_by_city_date_ordered_reshape) = 1:nrow(new_user_by_city_date_ordered_reshape)
 DT::datatable(new_user_by_city_date_ordered_reshape, options = list(pageLength = 20))
 ```
 
-上海,北京,长沙,南京,合肥,徐州,宁波,无锡,武汉,苏州占据前十名    
+长沙,宁波,南京,上海,北京,重庆,石家庄,苏州,郑州,天津占据前十名    
 
-**合肥,徐州,无锡,郑州,扬州,青岛,哈尔滨,昆明,保定,廊坊,长春,开封,东莞,贵阳,唐山,邯郸,临沂名次上升较多**    
-**厦门,大连,重庆,福州,杭州,南昌,台州,绍兴,湖州,金华,赣州,衢州等城市名次下降较多**
+**长沙,宁波,重庆,石家庄,天津,成都,西安,深圳,广州,东莞,佛山,贵阳,潍坊,邢台,新乡,兰州,泰安,淄博,南宁,安庆,鞍山,吉林,衡水,焦作,中山等城市名次上升较多**    
+**上海,北京,徐州,武汉,合肥,无锡,厦门,大连,扬州,滨州,金华,赣州,嘉兴,湖州等城市名次下降较多**
 
-这两周，流量整体很大,合肥,徐州,宁波等不少城市流量比较异常，各个城市名次相对过去两周变动很大
+这两周，流量整体不大,长沙,宁波等城市流量比较异常,但整体看各个城市还算正常,各个城市名次相对过去两周变动很大
 
 ```{r city_treemap}
 treemap(melt_df_city_top20,index=c("date","city"),vSize = "value")
@@ -435,7 +439,7 @@ DT::datatable(new_user_by_channel_date_ordered_reshape, options = list(pageLengt
 #kable(channel,format = "markdown")
 ```
 
-IOS二维码推广第一,android二维码推广第二,Appstore第三,小米第四,华为第五,oppo推广第六,百度助手第七,然后是vivo,30015,豌豆荚,应用宝,二维码-其他,360助手等,新的渠道锤子进入第14
+IOS二维码推广第一,小米第二,oppo推广第三,Appstore第四,华为第五,vivo第六,30015第七，android二维码推广第八,然后是百度助手,二维码-其他,豌豆荚,应用宝,360助手等,新的渠道广点通，魅族进入前20
 
 ```{r channel_treemap}
 melt_df_channel_top20 = melt(new_user_by_channel_date_ordered_reshape[1:20,-ncol(new_user_by_channel_date_ordered_reshape)], id.vars = "channels", measure.vars = 2:(ncol(new_user_by_channel_date_ordered_reshape)-1), variable.name = "date", value.name = "value")
@@ -468,7 +472,7 @@ barplot(matrix,main="每日订单数",names.arg=dates,xlab="month",ylab="订单�
 legend("topright",stacks, cex=0.7, fill=colors,xjust = 0, yjust = 1)
 ```
 
-在APP上有过活动的人生成的订单占比较少,高峰发生在6月16日到6月18日（节假日也是周末）,峰值有25000单以上,订单次高峰发生在6月23日到6月24日,峰值有6000单左右,平时订单很少,基本在5000单以下,周末订单较多,周一到周日有上升趋势
+在APP上有过活动的人生成的订单占比较少,高峰发生在6月30日到7月1日（周末）,峰值有10000单左右，订单次高峰发生在7月7日到7月8日，峰值有8000单左右,平时订单很少,基本在5000单以下,周末订单较多,周一到周日有上升趋势
 
 ##家装预约
 ```{r book}
@@ -481,8 +485,7 @@ online_book = read_data_impala_general(online_book_sql)
 barplot(online_book$b_num,names.arg = online_book$dt,col = "brown",xlab = "month",ylab = "预约数",main = "每日家装预约")
 ```
 
-**整体预约平稳趋势**，6月16日预约很多,预约达到500以上,6月7日，6月14日也很多,在400附近,除这几天，预约数在200附近徘徊，6月17日后,预约数降低,降低到50以下    
-整体相比上月,有了明显上升
+**整体预约平稳趋势**，预约数较低,平均在50附近    
 
 ##领券情况
 ```{r coupon}
@@ -495,9 +498,9 @@ coupon = read_data_impala_general(coupon_sql)
 barplot(coupon$c_num,names.arg = coupon$dt,xlab = "month",ylab = "领券人数",main = "每日领券情况",col = "blue")
 ```
 
-领券情况呈现从第一周第一天到第二周最后一天不断上升的趋势    
-这两周的趋势总体除去每周波动比较稳定，在6月16日到6月18日（最后两天）达到峰值    
-不过值得注意的是,6月18日节日之后,领券人数几乎为零    
+领券情况除去第一天，呈现从第一周第一天到第二周最后一天不断上升的趋势    
+在每周周末达到峰值    
+不过值得注意的是,领券人数相对节假日偏少        
 
 ```{r end,echo=FALSE,results="hide"}
 dbDisconnect(con)
