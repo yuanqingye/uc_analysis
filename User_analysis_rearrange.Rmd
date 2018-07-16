@@ -80,7 +80,7 @@ mtext(side = 2,text = at,at = at,col = 'purple',line = 1)
 
 ```
 
-次日留存率,老用户有一定的波动,新用户普遍较低波动不大,老用户留存率每一天都高于新用户,节日期间留存率高,7月2日留存率最低,6月28日留存率最高
+次日留存率,老用户有一定的波动,新用户普遍较低波动不大,老用户留存率每一天都高于新用户,节日期间留存率高,7月2日留存率最低,7月12日留存率最高
 
 #用户活跃
 ##近两周的日活跃度(UV)
@@ -215,7 +215,7 @@ subplot <- p1 + geom_line(colour = I("grey"),size = 0.8)
 # vp <- viewport(width = 0.4, height = 0.4, x = 1,
 #                y = unit(0.7, "lines"), just = c("right","bottom"))
 vp <- viewport(width = 0.6, height = 0.4, x = 0.75,
-                y = 0.35, just = c("right","bottom"))
+                y = 0.2, just = c("right","bottom"))
 full <- function() {
   print(mainplot)
   print(subplot, vp = vp)
@@ -224,7 +224,7 @@ full()
 ```
 
 画中画分析，*大图全图*和*小图中高亮处*均表示近两周pv趋势，而小图整体表示近一个月的pv情况    
-**近两周整体pv偏低**
+**近两周整体pv偏低,不过有上扬趋势**
 
 ## 用户活跃时长
 ```{r time_span,echo=FALSE,warning=FALSE,results="hide",message=FALSE}
@@ -278,7 +278,7 @@ from
 在本报告所覆盖的两周     
 在每周的周末,新用户访问时间更长,在每周的工作日,老用户访问时间更长    
 新用户访问时长波动大于老用户,当新用户达到访问时长波峰时,高于老用户,位于波谷时,低于老用户    
-
+不过第二周新用户一直偏低,而7月10日更是达到历史低点    
 
 ```{r depth_person_date,echo=FALSE,warning = FALSE,eval=FALSE}
 ##新老用户访问平均深度（按用户）
@@ -353,8 +353,8 @@ rownames(new_user_by_model_date_ordered_reshape) = 1:nrow(new_user_by_model_date
 DT::datatable(new_user_by_model_date_ordered_reshape, options = list(pageLength = 20))
 ```
 
-机型中iphone手机排名前列，前十三名均被iphone系列手机占据,安卓机中MI 6,MI5X,OPPO R11,OPPO R9s,Redmi Note 4X,Redmi Note 3,Mi Note 3排名前二十,值得注意的是新手机iPhone X排名第8,iphone7排名第13,iPhone 8 Plus排入第19,iPhone SE排第17    
-本阶段,排名前三的iphone5系列并非当下常见机型,华为机型本周并没有进入前20
+机型中iphone手机排名前列，前十三名均被iphone系列手机占据,安卓机中MI 6,MHA-AL00,OPPO R11,OPPO R9s,Redmi Note 4X,Redmi Note 3,Mi Note 3排名前二十,值得注意的是新手机iPhone X 排名第8,iphone7排名第11,iPhone 8 Plus排入第15,iPhone SE排第17    
+本阶段,排名前三的iphone5系列并非当下常见机型    
 
 
 ```{r model_treemap}
@@ -407,10 +407,9 @@ rownames(new_user_by_city_date_ordered_reshape) = 1:nrow(new_user_by_city_date_o
 DT::datatable(new_user_by_city_date_ordered_reshape, options = list(pageLength = 20))
 ```
 
-长沙,宁波,南京,上海,北京,重庆,石家庄,苏州,郑州,天津占据前十名    
-
-**长沙,宁波,重庆,石家庄,天津,成都,西安,深圳,广州,东莞,佛山,贵阳,潍坊,邢台,新乡,兰州,泰安,淄博,南宁,安庆,鞍山,吉林,衡水,焦作,中山等城市名次上升较多**    
-**上海,北京,徐州,武汉,合肥,无锡,厦门,大连,扬州,滨州,金华,赣州,嘉兴,湖州等城市名次下降较多**
+宁波,长沙,上海,厦门,北京,徐州,南京,大连,石家庄,南京占据前十名    
+**宁波,厦门,徐州,大连,石家庄,广州,扬州,昆明,绍兴,贵阳,南通,邢台,太原,济宁,泉州,芜湖,南阳,马鞍山,菏泽,周口,淄博,镇江,连云港,南宁,嘉兴,焦作,聊城,遵义,衡阳,上饶,南充等城市上升较多**
+**武汉,合肥,无锡,常州,金华,泰州,赣州,晋城,泰安,湖州,襄阳,鞍山等城市下降较多**    
 
 这两周，流量整体不大,长沙,宁波等城市流量比较异常,但整体看各个城市还算正常,各个城市名次相对过去两周变动很大
 
@@ -439,7 +438,7 @@ DT::datatable(new_user_by_channel_date_ordered_reshape, options = list(pageLengt
 #kable(channel,format = "markdown")
 ```
 
-IOS二维码推广第一,小米第二,oppo推广第三,Appstore第四,华为第五,vivo第六,30015第七，android二维码推广第八,然后是百度助手,二维码-其他,豌豆荚,应用宝,360助手等,新的渠道广点通，魅族进入前20
+IOS二维码推广第一,小米第二,Appstore第三,oppo推广第四,华为第五,vivo第六,android二维码推广第七,30015第七，然后是百度助手,二维码-其他,豌豆荚,应用宝,360助手等,新的渠道VIVO应用商店，锤子,金立易用汇进入前20
 
 ```{r channel_treemap}
 melt_df_channel_top20 = melt(new_user_by_channel_date_ordered_reshape[1:20,-ncol(new_user_by_channel_date_ordered_reshape)], id.vars = "channels", measure.vars = 2:(ncol(new_user_by_channel_date_ordered_reshape)-1), variable.name = "date", value.name = "value")
@@ -472,20 +471,8 @@ barplot(matrix,main="每日订单数",names.arg=dates,xlab="month",ylab="订单�
 legend("topright",stacks, cex=0.7, fill=colors,xjust = 0, yjust = 1)
 ```
 
-在APP上有过活动的人生成的订单占比较少,高峰发生在6月30日到7月1日（周末）,峰值有10000单左右，订单次高峰发生在7月7日到7月8日，峰值有8000单左右,平时订单很少,基本在5000单以下,周末订单较多,周一到周日有上升趋势
+在APP上有过活动的人生成的订单占比较少,高峰发生在7月14日到7月15日（周末）,峰值有12000单左右，订单次高峰发生在7月7日到7月8日，峰值有8000单左右,平时订单很少,基本在4000单以下,周末订单较多,周一到周日有上升趋势
 
-##家装预约
-```{r book}
-online_book_sql = paste0("select substr(d.create_date,1,10) dt,count(distinct d.openid) b_num from (select b.create_date,c.openid from
-                   ods.ods_jz_business_jz_activity_user_dt b inner join 
-ods.ods_db_user_center_users_dt c on b.user_mobile=c.mobile
-where b.is_del=0 and substr(create_date,1,10)>='",datestart,"') d
-group by substr(d.create_date,1,10) order by substr(d.create_date,1,10)")
-online_book = read_data_impala_general(online_book_sql)
-barplot(online_book$b_num,names.arg = online_book$dt,col = "brown",xlab = "month",ylab = "预约数",main = "每日家装预约")
-```
-
-**整体预约平稳趋势**，预约数较低,平均在50附近    
 
 ##领券情况
 ```{r coupon}
@@ -499,8 +486,21 @@ barplot(coupon$c_num,names.arg = coupon$dt,xlab = "month",ylab = "领券人数",
 ```
 
 领券情况除去第一天，呈现从第一周第一天到第二周最后一天不断上升的趋势    
-在每周周末达到峰值    
-不过值得注意的是,领券人数相对节假日偏少        
+在每周周末达到峰值,第二周周末比第一周周末有明显提升    
+不过值得注意的是,领券人数相对节假日偏少       
+
+##家装预约
+```{r book}
+online_book_sql = paste0("select substr(d.create_date,1,10) dt,count(distinct d.openid) b_num from (select b.create_date,c.openid from
+                   ods.ods_jz_business_jz_activity_user_dt b inner join 
+ods.ods_db_user_center_users_dt c on b.user_mobile=c.mobile
+where b.is_del=0 and substr(create_date,1,10)>='",datestart,"') d
+group by substr(d.create_date,1,10) order by substr(d.create_date,1,10)")
+online_book = read_data_impala_general(online_book_sql)
+barplot(online_book$b_num,names.arg = online_book$dt,col = "brown",xlab = "month",ylab = "预约数",main = "每日家装预约")
+```
+
+**整体预约平稳趋势**，预约数较低,平均在60附近
 
 ```{r end,echo=FALSE,results="hide"}
 dbDisconnect(con)
