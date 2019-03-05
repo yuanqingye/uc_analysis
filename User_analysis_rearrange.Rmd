@@ -33,11 +33,11 @@ ldateend.str = format(ldateend,'%Y%m%d')
 options(scipen = 10)
 
 ```
-#本报告对`r datestart`用户至`r dateend`这两周的行为进行了分析
-####包括反映用户数目的UV,反映用户活跃度的：人均PV,用户活跃时长,以及反映用户黏度的次日留存，报告还包含了路径深度的分析，转化部分的内容,并采用多种方式作图
-####本次报告用R语言自动化生成报告的框架搭建，今后将在此基础上不断改进优化
+# 本报告对`r datestart`用户至`r dateend`这两周的行为进行了分析
+#### 包括反映用户数目的UV,反映用户活跃度的：人均PV,用户活跃时长,以及反映用户黏度的次日留存，报告还包含了路径深度的分析，转化部分的内容,并采用多种方式作图
+#### 本次报告用R语言自动化生成报告的框架搭建，今后将在此基础上不断改进优化
 
-#用户黏性
+# 用户黏性
 ## 次日留存
 ```{r survival,echo=FALSE}
   survival_sql = paste0("select 
@@ -80,10 +80,13 @@ mtext(side = 2,text = at,at = at,col = 'purple',line = 1)
 
 ```
 
-次日留存率,老用户有一定的波动,新用户普遍较低波动不大,老用户留存率每一天都高于新用户,节日期间留存率高,7月2日留存率最低,7月12日留存率最高
+次日留存率    
+过去两周新用户波动不多,老用户有一定波动,2月20日和2月24日老用户留存有个波谷      
+老用户留存率每一天都高于新用户      
+整体除波谷外呈现接近水平的格局,留存率在0.3左右     
 
-#用户活跃
-##近两周的日活跃度(UV)
+# 用户活跃
+## 近两周的日用户活跃度(UV)
 ```{r daily_pvuv,echo = FALSE}
 #1daily activity pvuv
 pvuv_sql = paste0("select dt,
@@ -131,11 +134,14 @@ bplot = barplot(matrix,main="Every day uv",names.arg=dates,xlab="month",ylab="uv
 有`r newbetterthanold` 天新用户在UV值上超过老用户
 
 `r if(length(abnormalhighdt)==0){"并没有哪天"} else{abnormalhighdt}` 用户UV明显高于平均值    
-`r if(length(abnormallowdt)==0){"并没有哪天"} else{abnormallowdt}` 用户UV明显低于平均值    
+`r if(length(abnormallowdt)==0){"2019"} else{abnormallowdt}` 用户UV明显低于平均值    
 
 <!-- `r ifelse(length(abnormallowdt)==0,"并没有哪天",abnormallowdt)` 用户UV明显低于平均值 -->
 
-##近两周人均PV
+老用户uv值普遍比新用户高很多,且波动较大      
+新用户波动规律跟老用户不同,老用户周中周末差距不是那么大,新用户周末高周中低              老用户在2月21日,2月24日UV有个比较大的下降，但是之后迅速回升
+
+## 近两周人均PV
 ```{r pv_perperson,echo = FALSE}
 par(bg = 'black')
 colors = rainbow(3)
@@ -200,7 +206,11 @@ mtext(side = 2,text = at,at = at,col = 'purple',line = 1)
 
 有`r newbetterthanold` 天新用户在人均PV值上超过老用户
 
-`r difftrend` 新用户和老用户的趋势不一样
+`r difftrend` 新用户和老用户的趋势不一样    
+
+新用户人均pv波动较多较大     
+老用户保持在7-11左右,新用户15-25      
+新用户人均PV一直高过老用户不少   
 
 ```{r pvuv_trend,echo=FALSE,results="hide"} 
 ##results = hide
@@ -224,7 +234,9 @@ full()
 ```
 
 画中画分析，*大图全图*和*小图中高亮处*均表示近两周pv趋势，而小图整体表示近一个月的pv情况    
-**近两周整体pv偏低,不过有上扬趋势**
+**近两周总PV总体低,最高值仅有60000多一点,与老用户uv趋势关联很大       
+由于人均PV和UV互相抵消,导致总PV变化规律并不与平均PV特别相关     
+整体上来看,总体PV呈现缓慢周期性上升的节奏     
 
 ## 用户活跃时长
 ```{r time_span,echo=FALSE,warning=FALSE,results="hide",message=FALSE}
@@ -254,7 +266,7 @@ from
   time_span.new = time_span[,-1]
   timespan.m <- melt(time_span.new)
   timespan.m <- ddply(timespan.m, .(variable), transform,rescale = rescale(value))
-  timespan.m$dates = str_sub(as.character(timespan.m$fdt),6,8)
+  timespan.m$dates = str_sub(as.character(timespan.m$fdt),5,8)
   timespan.m$dates = factor(timespan.m$dates, levels = timespan.m$dates)
   names(timespan.m) = c("fdt","old_new_user","time_span","rescale","dates")
 # (p <- ggplot(timespan.m, aes(dates,old_new_user)) + geom_tile(aes(fill = time_span),colour = "white") + scale_fill_gradient(low = "white",high = "purple"))
@@ -274,11 +286,10 @@ from
   # DT::datatable(time_span.new[,-ncol(time_span.new)])
 ```
 
-对于用户访问时长作的热力图    
-在本报告所覆盖的两周     
-在每周的周末,新用户访问时间更长,在每周的工作日,老用户访问时间更长    
-新用户访问时长波动大于老用户,当新用户达到访问时长波峰时,高于老用户,位于波谷时,低于老用户    
-不过第二周新用户一直偏低,而7月10日更是达到历史低点    
+对于用户访问时长作的热力图      
+新用户访问时间波动不大,一直很高,在第一周有峰值         
+老用户访问时长平均来说比较低,新用户除了个别的波谷,平均访问时长都相较较高         
+访问时长的趋势和用户平均pv有强正相关,与用户活跃人数有一定负相关         
 
 ```{r depth_person_date,echo=FALSE,warning = FALSE,eval=FALSE}
 ##新老用户访问平均深度（按用户）
@@ -304,8 +315,8 @@ tb_1_2 = arrangeGrob(grobs = list(tb1,tb2),nrow = 2,ncol = 1)
 grid.arrange(p,tb_1_2,nrow = 2)
 ```
 
-#新用户激活渠道城市机型数量分析
-##新用户不同机型分布
+# 新用户激活渠道城市机型数量分析
+## 新用户不同机型分布
 ```{r model,echo = FALSE}
 # datestart = as.Date("2017-12-02","%Y-%m-%d")
 # dateend = datestart+14
@@ -353,8 +364,11 @@ rownames(new_user_by_model_date_ordered_reshape) = 1:nrow(new_user_by_model_date
 DT::datatable(new_user_by_model_date_ordered_reshape, options = list(pageLength = 20))
 ```
 
-机型中iphone手机排名前列，前十三名均被iphone系列手机占据,安卓机中MI 6,MHA-AL00,OPPO R11,OPPO R9s,Redmi Note 4X,Redmi Note 3,Mi Note 3排名前二十,值得注意的是新手机iPhone X 排名第8,iphone7排名第11,iPhone 8 Plus排入第15,iPhone SE排第17    
-本阶段,排名前三的iphone5系列并非当下常见机型    
+前二十中,十二种手机是苹果机，前十均是苹果手机，八个安卓机,安卓机大量涌入前二十      
+安卓机中,主要是华为,也有小米      
+iphoneX保持第一位,CLT-AL00;HMA-AL00等新机型上升较多        MI8,EML-AL00(华为P20),ALP-AL00(华为mate10),MHA-AL00(华为mate9),CLT-AL00(华为P20 pro),LYA-AL00(mate20 pro),HMA-AL00(华为mate20),PAR-AL00(华为nova3)为安卓前二十代表机型,MI8上升较多      
+BLA-AL00(华为mate10保时捷)走出前20,PAR-AL00上升10位进入前20      
+进入前20的手机型号比较稳定     
 
 
 ```{r model_treemap}
@@ -363,7 +377,7 @@ treemap(melt_df_model_top20,index = c("date","model"),vSize = "value")
 
 结构矩形树图，大矩形为日期，小矩形为具体机型，按从大到小的顺序，从上到下，从左到右排列
 
-##新用户不同城市分布
+## 新用户不同城市分布
 ```{r city,echo = FALSE}
 new_user_by_city_date_sql = 
 paste0("select count(b.u_mid) numbers,firstdt,l_city from
@@ -407,11 +421,12 @@ rownames(new_user_by_city_date_ordered_reshape) = 1:nrow(new_user_by_city_date_o
 DT::datatable(new_user_by_city_date_ordered_reshape, options = list(pageLength = 20))
 ```
 
-宁波,长沙,上海,厦门,北京,徐州,南京,大连,石家庄,南京占据前十名    
-**宁波,厦门,徐州,大连,石家庄,广州,扬州,昆明,绍兴,贵阳,南通,邢台,太原,济宁,泉州,芜湖,南阳,马鞍山,菏泽,周口,淄博,镇江,连云港,南宁,嘉兴,焦作,聊城,遵义,衡阳,上饶,南充等城市上升较多**
-**武汉,合肥,无锡,常州,金华,泰州,赣州,晋城,泰安,湖州,襄阳,鞍山等城市下降较多**    
+上海,北京,沈阳,南京,重庆,苏州,成都,西安,天津,合肥排名前十     
+大城市纷纷占据前列,与大家期待接近,大部分前十城市和上周相同    
+前二十中,沈阳,西安,合肥,石家庄,贵阳,大连上升较多     
+佛山,邢台,宝鸡,银川,吉林,咸阳,开封,湖州,枣庄,南充在中游城市中属于上升很多的
+无锡,绍兴,温州,盐城,兰州城市排名下降较多     
 
-这两周，流量整体不大,长沙,宁波等城市流量比较异常,但整体看各个城市还算正常,各个城市名次相对过去两周变动很大
 
 ```{r city_treemap}
 treemap(melt_df_city_top20,index=c("date","city"),vSize = "value")
@@ -419,7 +434,7 @@ treemap(melt_df_city_top20,index=c("date","city"),vSize = "value")
 
 结构矩形树图，大矩形为日期，小矩形为具体城市，按从大到小的顺序，从上到下，从左到右排列
 
-##新用户不同渠道分布
+## 新用户不同渠道分布
 ```{r channel,echo = FALSE}
 channel_sql = paste0("select * from dl.dl_channel_umid_openid where substr(umid_firstonlinetime,1,10) >= '",as.character(datestart),"' and dt = ",dateend.str)
 new_user_channel_unique = read_data_impala_general(channel_sql)
@@ -438,7 +453,9 @@ DT::datatable(new_user_by_channel_date_ordered_reshape, options = list(pageLengt
 #kable(channel,format = "markdown")
 ```
 
-IOS二维码推广第一,小米第二,Appstore第三,oppo推广第四,华为第五,vivo第六,android二维码推广第七,30015第七，然后是百度助手,二维码-其他,豌豆荚,应用宝,360助手等,新的渠道VIVO应用商店，锤子,金立易用汇进入前20
+Appstore第1,华为第2,30015第3,小米第4,应用宝第5,vivo第6,oppo推广第7,百度助手第8,360助手第9,豌豆荚第10,然后是魅族,IOS二维码,Android二维码,联想乐商店,APP-今日头条等,但是这些渠道体量很少了       
+渠道的排名,IOS集中于Appstore(二维码IOS都很少),安卓渠道十分广泛,二维码IOS下降很多,原来始终在前两位,二维码android下降也很多,前十名几乎没有变动      
+
 
 ```{r channel_treemap}
 melt_df_channel_top20 = melt(new_user_by_channel_date_ordered_reshape[1:20,-ncol(new_user_by_channel_date_ordered_reshape)], id.vars = "channels", measure.vars = 2:(ncol(new_user_by_channel_date_ordered_reshape)-1), variable.name = "date", value.name = "value")
@@ -447,8 +464,8 @@ treemap(melt_df_channel_top20,index=c("date","channels"),vSize = "value")
 
 结构矩形树图，大矩形为日期，小矩形为具体渠道，按从大到小的顺序，从上到下，从左到右排列
 
-#产出（通过订单转化，领券等衡量）
-##每日订单数
+# 产出（通过订单转化，领券等衡量）
+## 每日订单数
 ```{r order}
 online_order_sql = paste0("select count(distinct purchaser_id) as o_num,substr(b.create_date,1,10) as dt from
 (select purchaser_id,create_date from ods.ods_tx_order_tx_order_dt o inner join ods.ods_app_pageview_info a on 
@@ -459,11 +476,12 @@ total_order_sql = paste0("select count(distinct purchaser_id) as t_num,substr(b.
 (select purchaser_id,create_date from ods.ods_tx_order_tx_order_dt o where substr(o.create_date,1,10)>= '",datestart,"' and o.order_status not in (1,7,19) and o.order_type=1) b
                          group by substr(b.create_date,1,10) order by substr(b.create_date,1,10)")
 total_order = read_data_impala_general(total_order_sql)
-matrix = as.matrix(cbind(online_num = online_order$o_num,total_num = total_order$t_num))
-matrix = t(matrix)
+matrix = merge(online_order,total_order,by = 'dt',all = T)
+# matrix = as.matrix(cbind(online_num = online_order$o_num,total_num = total_order$t_num))
+dates <- matrix$dt
+matrix = t(matrix[,c("o_num","t_num")])
 par(bg = 'white')
 colors <- c("blue","purple")
-dates <- online_order$dt
 stacks <- c("有过APP活动订单数","总订单数")
 # Create the bar chart.
 barplot(matrix,main="每日订单数",names.arg=dates,xlab="month",ylab="订单数",col=colors,beside = TRUE)
@@ -471,10 +489,9 @@ barplot(matrix,main="每日订单数",names.arg=dates,xlab="month",ylab="订单�
 legend("topright",stacks, cex=0.7, fill=colors,xjust = 0, yjust = 1)
 ```
 
-在APP上有过活动的人生成的订单占比较少,高峰发生在7月14日到7月15日（周末）,峰值有12000单左右，订单次高峰发生在7月7日到7月8日，峰值有8000单左右,平时订单很少,基本在4000单以下,周末订单较多,周一到周日有上升趋势
+在APP上有过活动的人生成的订单占比较少,平时订单不多,高峰的时候在最近的那个周末,有15000单左右,次高峰在上一个周末,达到10000+,第一周低的时候在2000-3000单左右,第二周低的时候在3000-4000单左右,第二周整体比第一周高       
 
-
-##领券情况
+## 领券情况
 ```{r coupon}
 coupon_sql = paste0("select substr(d.create_time,1,10) dt,count(distinct d.open_id) c_num 
 from (select create_time,open_id from ods.ods_marketing_center_mmc_user_coupon_dt where 
@@ -485,11 +502,10 @@ coupon = read_data_impala_general(coupon_sql)
 barplot(coupon$c_num,names.arg = coupon$dt,xlab = "month",ylab = "领券人数",main = "每日领券情况",col = "blue")
 ```
 
-领券情况除去第一天，呈现从第一周第一天到第二周最后一天不断上升的趋势    
-在每周周末达到峰值,第二周周末比第一周周末有明显提升    
-不过值得注意的是,领券人数相对节假日偏少       
+领券方面,规律比较明显,从第一周第一天到第二周最后一天呈现不断上升的趋势,第二周达到了200左右      
 
-##家装预约
+
+## 家装预约
 ```{r book}
 online_book_sql = paste0("select substr(d.create_date,1,10) dt,count(distinct d.openid) b_num from (select b.create_date,c.openid from
                    ods.ods_jz_business_jz_activity_user_dt b inner join 
@@ -500,7 +516,9 @@ online_book = read_data_impala_general(online_book_sql)
 barplot(online_book$b_num,names.arg = online_book$dt,col = "brown",xlab = "month",ylab = "预约数",main = "每日家装预约")
 ```
 
-**整体预约平稳趋势**，预约数较低,平均在60附近
+**整体预约前期平稳,后期增长**    
+家装预约第一周先上升后下降,第二周规律也是先上升后下降,第二周高于第一周,最高达到30左右,平时只有10左右                  
+             
 
 ```{r end,echo=FALSE,results="hide"}
 dbDisconnect(con)
